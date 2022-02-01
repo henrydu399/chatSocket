@@ -47,6 +47,7 @@ public class MaincClient  extends Thread{
 				menu();
 	}
 
+	
 	private  void menu() {
 		try {
 			System.out.println(" BIENVENIDO A AL CLIENTE SYSTEM OUT");
