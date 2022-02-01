@@ -5,6 +5,7 @@
  */
 package co.system.out.serverchat.models;
 
+import java.net.Socket;
 import java.util.Date;
 
 /**
@@ -18,8 +19,17 @@ public class Client {
     private User user;
     private Date iniConexion;
     private boolean stateConnect;
+    static Socket sckt;
 
-    public Client(String ip, User user, Date iniConexion) {
+    public static Socket getSckt() {
+		return sckt;
+	}
+
+	public static void setSckt(Socket sckt) {
+		Client.sckt = sckt;
+	}
+
+	public Client(String ip, User user, Date iniConexion) {
         this.ip = ip;
         this.user = user;
         this.iniConexion = iniConexion;

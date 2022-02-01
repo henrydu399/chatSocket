@@ -10,8 +10,9 @@
     </properties>
     <name>SystemOutAuth</name>
     <modules>
-        <module>HackerRanck</module>
+        <module>ServerWebChat</module>
         <module>ServerChat</module>
         <module>ClientChat</module>
+        
     </modules>
 </project>

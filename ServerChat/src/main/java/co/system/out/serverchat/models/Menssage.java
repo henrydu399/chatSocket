@@ -9,20 +9,29 @@ import java.io.Serializable;
 
 /**
  *
- * @author henry
+ * CAUDNO ES UN MENSAJE DEL SERVER LOS CLIENTES VAN NULL
  */
 public class Menssage implements Serializable{
     
-    private Client clientEmisor;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	
+	private Client clientEmisor;
     private Client clienteReceptor;
     private String Mesaje;
-    private boolean isLogin;
 
-    public Menssage(Client clientEmisor, Client clienteReceptor, String Mesaje, boolean isLogin) {
+    
+    private typeMessages type;
+
+    public Menssage(Client clientEmisor, Client clienteReceptor, String Mesaje , typeMessages type) {
         this.clientEmisor = clientEmisor;
         this.clienteReceptor = clienteReceptor;
         this.Mesaje = Mesaje;
-        this.isLogin = isLogin;
+        this.type =  type;
+        
     }
 
     public Client getClientEmisor() {
@@ -49,16 +58,28 @@ public class Menssage implements Serializable{
         this.Mesaje = Mesaje;
     }
 
-    public boolean isIsLogin() {
-        return isLogin;
-    }
+  
+    
+    
+    public typeMessages getType() {
+		return type;
+	}
 
-    public void setIsLogin(boolean isLogin) {
-        this.isLogin = isLogin;
+	public void setType(typeMessages type) {
+		this.type = type;
+	}
+
+
+
+
+	public enum typeMessages{
+    	ADDUSER,
+    	DELETEUSER,
+    	DISCONECTUSER,
+    	GLOBALMENSSAGE,
+    	USERMENSSAGE,
+    	USERLOGIN
     }
-    
-    
-    
     
     
     
