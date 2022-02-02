@@ -12,25 +12,24 @@ import co.system.out.clientchat.MaincClient;
 
 public class UtilServerChat {
 
-	public static String getIP() {
-		String publicIP = "";
-		/*
-		 * try { URL tempURL = new URL("http://www.whatismyip.org/"); HttpURLConnection
-		 * tempConn = (HttpURLConnection) tempURL.openConnection(); InputStream
-		 * tempInStream = tempConn.getInputStream(); InputStreamReader tempIsr = new
-		 * InputStreamReader(tempInStream); BufferedReader tempBr = new
-		 * BufferedReader(tempIsr);
-		 * 
-		 * publicIP = tempBr.readLine();
-		 * 
-		 * tempBr.close(); tempInStream.close(); return publicIP;
-		 * 
-		 * } catch (Exception ex) { publicIP =
-		 * "<No es posible resolver la direccion IP>";
-		 * Logger.getLogger(MaincClient.class.getName()).log(Level.SEVERE, null, ex); }
-		 */
-		return publicIP;
+    public static String getIP() {
+        String publicIP = "";
+        try {
+           URL whatismyip = new URL("http://checkip.amazonaws.com");
+            BufferedReader in = new BufferedReader(new InputStreamReader(
+                whatismyip.openStream()));
 
-	}
-	
+            String ip = in.readLine(); //you get the IP as a String
+            return ip;
+
+        } catch (Exception ex) {
+            publicIP
+                    = "<No es posible resolver la direccion IP>";
+            Logger.getLogger(MaincClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return publicIP;
+
+    }
+
 }

@@ -44,6 +44,10 @@ public class MaincClient  extends Thread{
 
 
 	public void run() {	
+            /*
+            OBTENEMOS LA IP PUBLICA DEL CLIENTE 
+            */
+            this.ip = UtilServerChat.getIP();
 				menu();
 	}
 
@@ -81,11 +85,12 @@ public class MaincClient  extends Thread{
 		try {
 			// Optenemos la ip del cliente 
 			this.ip=UtilServerChat.getIP();		 
-			sckt = new Socket("192.168.1.79", 3000);		
+			//sckt = new Socket("hdhome.access.ly", 3000);	
+                        sckt = new Socket("127.0.0.1", 3000);
 			if( sckt != null) {
 				new ReadThread(sckt,  this).start();
 				System.err.println("    ");
-	            new WriteThread(sckt,  this).start();
+	                        new WriteThread(sckt,  this).start();
 			}else {
 				System.err.println(" NO SE PUDO CONECTAR CON EL SERVIDOR   ");
 			}
