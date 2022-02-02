@@ -77,6 +77,7 @@ public class Menssage implements Serializable{
     	DELETEUSER,
     	DISCONECTUSER,
     	GLOBALMENSSAGE,
+    	SERVERMENSSAGE,
     	USERMENSSAGE,
     	USERLOGIN
     }

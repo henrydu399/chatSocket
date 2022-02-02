@@ -58,11 +58,11 @@ public class WriteThread extends Thread {
 					 dtotpt.flush();
 					 this.mainClient.setLogin(true);
 				}else {
-					System.err.println(" INGRESE EMAIL : ");
+					System.err.println(" INGRESE EMAIL O USUARIO A ENVIAR : ");
 					String email;
 					email = br.readLine();
 		
-					System.err.println(" INGRESE MENSAJE : ");
+					System.err.println(" INGRESE MENSAJE A ENVIAR : ");
 					mensaje = br.readLine();
 		
 					User userRecept = new User(email, null, null, null, 0, "0000000"); // usuario receptor
@@ -73,6 +73,13 @@ public class WriteThread extends Thread {
 		
 					dtotpt.writeUTF(new Gson().toJson(msj)  );
 					dtotpt.flush();
+					
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 		
 

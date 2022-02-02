@@ -22,11 +22,6 @@ public class BrocastClientMessage extends Thread {
 	private   BufferedReader br;
 	
 	
-	
-	
-
-
-
 
 	public BrocastClientMessage(AppServer app) {
 		super();
@@ -39,9 +34,7 @@ public class BrocastClientMessage extends Thread {
 	 * 
 	 */
 	public void run () {
-		
-		enviarMensaje ();
-		
+		enviarMensaje ();	
 	}
 	
 	private   void  enviarMensaje () {
@@ -51,13 +44,12 @@ public class BrocastClientMessage extends Thread {
 				br = new BufferedReader(new InputStreamReader(System.in));
 				try {
 					String mensaje = br.readLine();
-					enviar (mensaje);
-					
+					enviar (mensaje);					
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-		enviarMensaje ();
+		//enviarMensaje ();
 	}
 	
 	private void  enviar (String mensaje ) {

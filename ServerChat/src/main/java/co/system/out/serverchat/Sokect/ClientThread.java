@@ -39,11 +39,9 @@ public class ClientThread extends Thread {
 
 	public void run() {
 		try {
-
-			
+		
 			String msgin = null;
-			while (true) {
-				
+			while (true) {			
 				msgin = this.dtinpt.readUTF();
 				//reader = new BufferedReader(new InputStreamReader(dtinpt));				
 				if (msgin != null && !msgin.equals("")) {
@@ -53,7 +51,6 @@ public class ClientThread extends Thread {
 						Menssage msj = gson.fromJson(msgin, Menssage.class);
 						if (msj != null) {
 							executeComportamiento(msj);
-
 						}else {
 							System.out.println("SERVER : " + msgin) ;
 						}
@@ -61,10 +58,7 @@ public class ClientThread extends Thread {
 						// TODO: handle exception
 					}
 
-				}
-				
-				
-
+				}			
 			}
 
 		} catch (IOException ex) {
@@ -78,14 +72,14 @@ public class ClientThread extends Thread {
 	 * Metodo que ejecuta el comportamiento segun el tipo de mensaje enviado por el cliente 
 	 */
 	public void  executeComportamiento (Menssage msj) {
-		
+		String out = null;
 		switch (msj.getType()) {
 		case USERLOGIN:
 			this.cliente = msj.getClientEmisor();
 			System.out.println("SERVER : EL Cliente : " + msj.getClientEmisor().getUser().getNombres()+ " ENVIA :" + msj.getMesaje());
 			break;
 		case USERMENSSAGE:  // MENSAJE ENVIADO A OTRO OSUARIO
-			this.appServer.enviarMensajeUserxUser(msj);
+			out = this.appServer.enviarMensajeUserxUser(msj);
 			break ;
 
 		default:
@@ -100,15 +94,18 @@ public class ClientThread extends Thread {
 	 */
 	public void  enviarMensajeCliente( Menssage msj) {
  		try {
-			dtotpt = new DataOutputStream(this.socket.getOutputStream());
-	 		dtotpt.writeUTF(new Gson().toJson(msj));
-			dtotpt.flush();
+ 			if( this.socket != null) {
+ 				dtotpt = new DataOutputStream(this.socket.getOutputStream());
+ 		 		dtotpt.writeUTF(new Gson().toJson(msj));
+ 				dtotpt.flush();
+ 			}else {
+ 				System.out.println("SERVER : EL SOCKET ESTA CERRADO PARA EL CLIENTE :");
+ 			}
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-
-		
+		}	
 	}
 
 	public Client getCliente() {

@@ -75,6 +75,9 @@ public class ReadThread extends Thread {
 			case USERMENSSAGE :
 				System.out.println(" [ "+msj.getClientEmisor().getUser().getEmail()+" ] " + " [ " +msj.getMesaje() + " ]");
 				break;
+			case SERVERMENSSAGE :
+				System.out.println(" [ "+msj.getClientEmisor().getUser().getEmail()+" ] " + " [ " +msj.getMesaje() + " ]");
+				break;
 
 			default:
 				break;

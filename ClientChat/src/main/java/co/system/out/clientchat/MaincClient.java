@@ -81,11 +81,10 @@ public class MaincClient  extends Thread{
 		try {
 			// Optenemos la ip del cliente 
 			this.ip=UtilServerChat.getIP();		 
-			 
-			sckt = new Socket("192.168.1.25", 3000);
-			
+			sckt = new Socket("192.168.1.79", 3000);		
 			if( sckt != null) {
 				new ReadThread(sckt,  this).start();
+				System.err.println("    ");
 	            new WriteThread(sckt,  this).start();
 			}else {
 				System.err.println(" NO SE PUDO CONECTAR CON EL SERVIDOR   ");
@@ -111,10 +110,10 @@ public class MaincClient  extends Thread{
 			String password = br.readLine();
 			System.err.println(" INGRESE NOMBRES  : ");
 			String nombres = br.readLine();
-			System.err.println(" INGRESE APPELIDOS  : ");
-			String apellidos = br.readLine();
+	//		System.err.println(" INGRESE APPELIDOS  : ");
+	//		String apellidos = br.readLine();
 			
-			userLocal = new User(user, password, nombres, apellidos, 27, "0000000");
+			userLocal = new User(user, password, nombres, "", 27, "0000000");
 			
 			Client thisCliente = new Client (this.ip , userLocal, new Date());
 			Menssage msj = new Menssage(thisCliente, null, "USUARIO  : " + userLocal.getEmail(), Menssage.typeMessages.USERLOGIN);
