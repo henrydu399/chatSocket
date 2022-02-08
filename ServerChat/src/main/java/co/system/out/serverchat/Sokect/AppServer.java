@@ -27,127 +27,133 @@ import java.util.logging.Logger;
  */
 public class AppServer extends Thread {
 
-	private final int puerto = 3000;
-	private final String ip = "192.168.56.1";
+    private final int puerto = 3000;
+    private final String ip = "192.168.56.1";
 
-	ServerSocket ssckt;
+    ServerSocket ssckt;
 
-	List<ClientThread> listClientThread;
+    List<ClientThread> listClientThread;
 
-	/*
+    /*
 	 * Metodo que incia el servidor en el puerto parametrizado
-	 */
-	public void run() {
+     */
+    public void run() {
 
-		try {
-			ssckt = new ServerSocket(puerto);
-			if (ssckt != null) {
-				execute();
-			} else {
-				System.out.println("ERROR:  NO SE PUDO INCIIAR EL SERVER ");
-			}
+        try {
+            ssckt = new ServerSocket(puerto);
+            if (ssckt != null) {
+                execute();
+            } else {
+                System.out.println("ERROR:  NO SE PUDO INCIIAR EL SERVER ");
+            }
 
-		} catch (IOException ex) {
-			System.out.println("ERROR: INICIANDO SERVER " + ex.getMessage());
-			ex.printStackTrace();
-		}
+        } catch (IOException ex) {
+            System.out.println("ERROR: INICIANDO SERVER " + ex.getMessage());
+            ex.printStackTrace();
+        }
 
-	}
+    }
 
-	public void execute() {
+    public void execute() {
 
-		try {
-			this.listClientThread = new ArrayList<ClientThread>();
-			System.out.println("      ESCUCHANDO CLIENTES .... ");
+        try {
+            this.listClientThread = new ArrayList<ClientThread>();
+            System.out.println("      ESCUCHANDO CLIENTES .... ");
 
-			try {
-				while (true) {
-					try {
-						Socket sckt = ssckt.accept();
-						if (sckt != null) {
-							ClientThread clientRhread = new ClientThread(sckt, this);
-							this.listClientThread.add(clientRhread);
-							// clientRhread.PreRun();
-							clientRhread.start();
-						}
-					} catch (Exception e) {
-						// TODO: handle exception
-					}
-				}
+            try {
+                while (true) {
+                    try {
+                        Socket sckt = ssckt.accept();
+                        if (sckt != null) {
 
-			} catch (Exception e) {
-				System.out.println("Error in the server: " + e.getMessage());
-			}
+                            ClientThread clientRhread = new ClientThread(sckt, this);
+                            this.listClientThread.add(clientRhread);
+                            // clientRhread.PreRun();
+                            clientRhread.start();
+                        }
+                    } catch (Exception e) {
+                        // TODO: handle exception
+                    }
+                }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+            } catch (Exception e) {
+                System.out.println("Error in the server: " + e.getMessage());
+            }
 
-	}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-	/*
+    }
+
+    /*
 	 * Metodo que RECIBE LOS MENSAJE DE LOS USUARIOS Y LOS REDIJIRE CORRECTAMENTE AL
 	 * USUARIO RECEPTOR
 	 * 
 	 * @IN Menssage
-	 */
-	public String enviarMensajeUserxUser(Menssage msj) {
-		String out = null;
-		// BUSCAMOS EL USUARIO RECEPTOR SI EXISTE
-		if (msj.getClienteReceptor() != null && msj.getClienteReceptor().getUser() != null) {
-			ClientThread temp = buscarClientexUsuario(msj.getClienteReceptor().getUser());
-			if (temp != null) {
-				temp.enviarMensajeCliente(msj);
-			} else {
-				out = "NO SE ENCONTRO CLIENTE  RECEPTOR   O USUARIO RECEPTOR :  "+msj.getClienteReceptor().getUser();
-				this.enviarRespuestaCliente(out, msj.getClientEmisor());
-			}
+     */
+    public String enviarMensajeUserxUser(Menssage msj) {
+        String out = null;
+        // BUSCAMOS EL USUARIO RECEPTOR SI EXISTE
+        if (msj.getClienteReceptor() != null && msj.getClienteReceptor().getUser() != null) {
+            ClientThread temp = buscarClientexUsuario(msj.getClienteReceptor().getUser());
+            if (temp != null) {
+                temp.enviarMensajeCliente(msj);
+            } else {
+                out = "NO SE ENCONTRO CLIENTE  RECEPTOR   O USUARIO RECEPTOR :  " + msj.getClienteReceptor().getUser().getEmail();
+                this.enviarRespuestaCliente(out, msj.getClientEmisor());
+            }
 
-		} else {
-			out = " NO SE ENVIO EL CLIENTE  RECEPTOR O USUARIO RECEPTOR : "+msj.getClienteReceptor().getUser();;
-			this.enviarRespuestaCliente(out, msj.getClientEmisor());
-		}
-		return out;
-	}
+        } else {
+            out = " NO SE ENVIO EL CLIENTE  RECEPTOR O USUARIO RECEPTOR : " + msj.getClienteReceptor().getUser().getEmail();
+            this.enviarRespuestaCliente(out, msj.getClientEmisor());
+        }
+        return out;
+    }
 
-	/*
+    /*
 	 * Metodo que busca en todos los clientes conectados el usuario receptor
-	 */
-	private ClientThread buscarClientexUsuario(User user) {
-		for (ClientThread temp : this.listClientThread) {
-			if (temp.getCliente().getUser().getEmail().equals(user.getEmail())) {
-				return temp;
-			}
-		}
-		return null;
-	}
+     */
+    private ClientThread buscarClientexUsuario(User user) {
+        for (ClientThread temp : this.listClientThread) {
+            if (temp.getSocket().isClosed()) {
+                this.listClientThread.remove(temp);
+            } else {
+                if (temp.getCliente().getUser().getEmail().equals(user.getEmail())) {
+                    return temp;
+                }
+            }
 
-	private void enviarRespuestaCliente(String msjRespuestaServer, Client clienteReceptor) {
-		// Server response
-		Client serverClient = new Client("0.0.0.0",
-				new User("server@gmail.com", null, "SERVER NAME", "SERVER LAST NAME", 0, "0"), null);
-		// Msj create
-		Menssage msj = new Menssage(serverClient, clienteReceptor, msjRespuestaServer, null);
-		
-		msj.setType(typeMessages.SERVERMENSSAGE);
+        }
+        return null;
+    }
 
-		ClientThread temp = buscarClientexUsuario(clienteReceptor.getUser());
+    private void enviarRespuestaCliente(String msjRespuestaServer, Client clienteReceptor) {
+        // Server response
+        Client serverClient = new Client("0.0.0.0",
+                new User("server@gmail.com", null, "SERVER NAME", "SERVER LAST NAME", 0, "0"), null);
+        // Msj create
+        Menssage msj = new Menssage(serverClient, clienteReceptor, msjRespuestaServer, null);
 
-		if (temp != null) {
-			temp.enviarMensajeCliente(msj);
-		}
+        msj.setType(typeMessages.SERVERMENSSAGE);
 
-	}
+        ClientThread temp = buscarClientexUsuario(clienteReceptor.getUser());
 
-	public List<ClientThread> getListClientThread() {
-		if (listClientThread == null) {
-			listClientThread = new ArrayList<ClientThread>();
-		}
-		return listClientThread;
-	}
+        if (temp != null) {
+            temp.enviarMensajeCliente(msj);
+        }
 
-	public void setListClientThread(List<ClientThread> listClientThread) {
-		this.listClientThread = listClientThread;
-	}
+    }
+
+    public List<ClientThread> getListClientThread() {
+        if (listClientThread == null) {
+            listClientThread = new ArrayList<ClientThread>();
+        }
+        return listClientThread;
+    }
+
+    public void setListClientThread(List<ClientThread> listClientThread) {
+        this.listClientThread = listClientThread;
+    }
 
 }

@@ -13,6 +13,6 @@
         <module>ServerWebChat</module>
         <module>ServerChat</module>
         <module>ClientChat</module>
-        
+        <module>ClientChatGUI</module>
     </modules>
 </project>

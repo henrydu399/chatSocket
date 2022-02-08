@@ -3,9 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package co.system.out.clientchat;
+package co.system.out.clientchatgui.main;
 
-import co.system.out.clientchat.utils.UtilServerChat;
+
+import co.system.out.clientchatgui.utils.UtilServerChat;
+import co.system.out.clientchatgui.views.MainView;
 import co.system.out.serverchat.models.Client;
 import co.system.out.serverchat.models.Menssage;
 import co.system.out.serverchat.models.User;
@@ -22,25 +24,30 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-/**
- *
- * @author henry
- */
+
+
 public class MaincClient  extends Thread{
 
 	private Socket sckt;
-
 
 	private Client ClienteMain;
 
 	private BufferedReader br;
 	
-    private boolean isLogin = false;
+       private boolean isLogin = false;
     
 	private User userLocal = null;
 	
 	private String ip = null;
+        
+        private ReadThread readThread;
+                
+        private WriteThread writeThread;
+        
+        MainView mainView;
+        
 
+    
 
 
 	public void run() {	
@@ -81,16 +88,19 @@ public class MaincClient  extends Thread{
 
 	
 
-	private  void Conectar() {
+	public  void Conectar() {
 		try {
 			// Optenemos la ip del cliente 
 			this.ip=UtilServerChat.getIP();		 
-			sckt = new Socket("hdhome.access.ly", 3000);	
-                        //sckt = new Socket("127.0.0.1", 3000);
+			//sckt = new Socket("hdhome.access.ly", 3000);	
+                        sckt = new Socket("127.0.0.1", 3000);
 			if( sckt != null) {
-				new ReadThread(sckt,  this).start();
+				readThread = new ReadThread(sckt,  this);
+                                readThread.start();
 				System.err.println("    ");
-	                        new WriteThread(sckt,  this).start();
+	                        writeThread = new WriteThread(sckt,  this);
+                                writeThread.start();
+                                System.err.println(" CONEXION CON EL SERVIDOR COMPLETA  ");
 			}else {
 				System.err.println(" NO SE PUDO CONECTAR CON EL SERVIDOR   ");
 			}
@@ -104,34 +114,34 @@ public class MaincClient  extends Thread{
 
 	}
 	
-    public Menssage login() {
-
-    	Menssage out = null;
-		try {
-			System.err.println(" INGRESE USUARIO  : ");
-			br = new BufferedReader(new InputStreamReader(System.in));
-			String user = br.readLine();
-			System.err.println(" INGRESE PASSWORD  : ");
-			String password = br.readLine();
-			System.err.println(" INGRESE NOMBRES  : ");
-			String nombres = br.readLine();
-	//		System.err.println(" INGRESE APPELIDOS  : ");
-	//		String apellidos = br.readLine();
-			
-			userLocal = new User(user, password, nombres, "", 27, "0000000");
-			
-			Client thisCliente = new Client (this.ip , userLocal, new Date());
-			Menssage msj = new Menssage(thisCliente, null, "USUARIO  : " + userLocal.getEmail(), Menssage.typeMessages.USERLOGIN);
-			
-			out = msj;
-
-			
-		} catch (IOException ex) {
-			Logger.getLogger(MaincClient.class.getName()).log(Level.SEVERE, null, ex);
-		}
-		
-		return out;
-	}
+//    public Menssage login() {
+//
+//    	Menssage out = null;
+//		try {
+//			System.err.println(" INGRESE USUARIO  : ");
+//			br = new BufferedReader(new InputStreamReader(System.in));
+//			String user = br.readLine();
+//			System.err.println(" INGRESE PASSWORD  : ");
+//			String password = br.readLine();
+//			System.err.println(" INGRESE NOMBRES  : ");
+//			String nombres = br.readLine();
+//	//		System.err.println(" INGRESE APPELIDOS  : ");
+//	//		String apellidos = br.readLine();
+//			
+//			userLocal = new User(user, password, nombres, "", 27, "0000000");
+//			
+//			Client thisCliente = new Client (this.ip , userLocal, new Date());
+//			Menssage msj = new Menssage(thisCliente, null, "USUARIO  : " + userLocal.getEmail(), Menssage.typeMessages.USERLOGIN);
+//			
+//			out = msj;
+//
+//			
+//		} catch (IOException ex) {
+//			Logger.getLogger(MaincClient.class.getName()).log(Level.SEVERE, null, ex);
+//		}
+//		
+//		return out;
+//	}
 
 	public boolean isLogin() {
 		return isLogin;
@@ -166,6 +176,34 @@ public class MaincClient  extends Thread{
 	public void setClienteMain(Client clienteMain) {
 		ClienteMain = clienteMain;
 	}
+
+    public MainView getMainView() {
+        return mainView;
+    }
+
+    public void setMainView(MainView mainView) {
+        this.mainView = mainView;
+    }
+        
+        
+        
+        
+
+    public ReadThread getReadThread() {
+        return readThread;
+    }
+
+    public void setReadThread(ReadThread readThread) {
+        this.readThread = readThread;
+    }
+
+    public WriteThread getWriteThread() {
+        return writeThread;
+    }
+
+    public void setWriteThread(WriteThread writeThread) {
+        this.writeThread = writeThread;
+    }
     
     
     
