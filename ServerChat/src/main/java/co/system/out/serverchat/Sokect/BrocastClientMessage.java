@@ -9,10 +9,8 @@ import java.util.List;
 
 import com.google.gson.Gson;
 
-import co.system.out.serverchat.models.Client;
-import co.system.out.serverchat.models.Menssage;
-import co.system.out.serverchat.models.User;
-import co.system.out.serverchat.models.Menssage.typeMessages;
+import co.system.out.clientchatgui.models.*;
+
 
 public class BrocastClientMessage extends Thread {
 	

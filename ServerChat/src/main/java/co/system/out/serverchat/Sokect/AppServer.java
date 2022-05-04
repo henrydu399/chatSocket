@@ -5,14 +5,15 @@
  */
 package co.system.out.serverchat.Sokect;
 
-import co.system.out.serverchat.models.Client;
-import co.system.out.serverchat.models.Menssage;
-import co.system.out.serverchat.models.Menssage.typeMessages;
-import co.system.out.serverchat.models.User;
+import co.system.out.clientchatgui.models.*;
+import co.system.out.clientchatgui.models.Menssage.typeMessages;
 
-import com.google.gson.Gson;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import co.system.out.serverchat.business.IContactosBusiness;
+import co.system.out.serverchat.business.IUserBusiness;
+
+
+
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -21,23 +22,40 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author henry
- */
+
 public class AppServer extends Thread {
 
     private final int puerto = 3000;
-    private final String ip = "192.168.56.1";
+    private final String ip = "127.1.0.0";
 
     ServerSocket ssckt;
 
     List<ClientThread> listClientThread;
+    
+    
+    private Client serverClient ;
+    
+     ///Business Logic
+    private IUserBusiness userBusiness;
+    private IContactosBusiness contactosBusiness;
 
+        
+    public AppServer(IUserBusiness _userBusiness , IContactosBusiness _contactosBusiness) {
+        this.userBusiness = _userBusiness;
+        this.contactosBusiness = _contactosBusiness;
+    }
+        
+        
+
+  
+    
+    
     /*
 	 * Metodo que incia el servidor en el puerto parametrizado
      */
     public void run() {
+      //String email, long userId, String rol, String state, String tipoIdentificacion, String nombres, String apellidos, String numeroIdentificacion
+         serverClient = new Client("0.0.0.0",new User("server@gmail.com", 1l,"ADMIN","ACTIVO", "CC", "SERVER" , "CONECTADOS" , "00000001"), null);
 
         try {
             ssckt = new ServerSocket(puerto);
@@ -57,7 +75,7 @@ public class AppServer extends Thread {
     public void execute() {
 
         try {
-            this.listClientThread = new ArrayList<ClientThread>();
+            this.listClientThread = new ArrayList<>();
             System.out.println("      ESCUCHANDO CLIENTES .... ");
 
             try {
@@ -66,13 +84,14 @@ public class AppServer extends Thread {
                         Socket sckt = ssckt.accept();
                         if (sckt != null) {
 
-                            ClientThread clientRhread = new ClientThread(sckt, this);
+                            ClientThread clientRhread = new ClientThread(sckt, this,sckt.getInetAddress().getHostAddress() , this.userBusiness , this.contactosBusiness );
                             this.listClientThread.add(clientRhread);
                             // clientRhread.PreRun();
                             clientRhread.start();
+                            System.out.println("    CLIENTE ACEPTADO  .... ");
                         }
                     } catch (Exception e) {
-                        // TODO: handle exception
+                        e.printStackTrace();
                     }
                 }
 
@@ -92,21 +111,22 @@ public class AppServer extends Thread {
 	 * 
 	 * @IN Menssage
      */
-    public String enviarMensajeUserxUser(Menssage msj) {
+    public String enviarMensaje(Menssage msj) {
         String out = null;
         // BUSCAMOS EL USUARIO RECEPTOR SI EXISTE
         if (msj.getClienteReceptor() != null && msj.getClienteReceptor().getUser() != null) {
+            // BUSCAMOS SI ESTA ONLINE
             ClientThread temp = buscarClientexUsuario(msj.getClienteReceptor().getUser());
             if (temp != null) {
                 temp.enviarMensajeCliente(msj);
             } else {
-                out = "NO SE ENCONTRO CLIENTE  RECEPTOR   O USUARIO RECEPTOR :  " + msj.getClienteReceptor().getUser().getEmail();
-                this.enviarRespuestaCliente(out, msj.getClientEmisor());
+                out = "NO SE ENCONTRO USUARIO CONECTADO  :  " + msj.getClienteReceptor().getUser().getEmail();
+                this.enviarRespuestaCliente(out, msj.getClientEmisor(),typeMessages.SERVERMENSSAGE);
             }
 
         } else {
             out = " NO SE ENVIO EL CLIENTE  RECEPTOR O USUARIO RECEPTOR : " + msj.getClienteReceptor().getUser().getEmail();
-            this.enviarRespuestaCliente(out, msj.getClientEmisor());
+            this.enviarRespuestaCliente(out, msj.getClientEmisor(),typeMessages.SERVERMENSSAGE);
         }
         return out;
     }
@@ -119,7 +139,7 @@ public class AppServer extends Thread {
             if (temp.getSocket().isClosed()) {
                 this.listClientThread.remove(temp);
             } else {
-                if (temp.getCliente().getUser().getEmail().equals(user.getEmail())) {
+                if (temp.getCliente().getUser().getUserId()==(user.getUserId())) {
                     return temp;
                 }
             }
@@ -128,22 +148,20 @@ public class AppServer extends Thread {
         return null;
     }
 
-    private void enviarRespuestaCliente(String msjRespuestaServer, Client clienteReceptor) {
-        // Server response
-        Client serverClient = new Client("0.0.0.0",
-                new User("server@gmail.com", null, "SERVER NAME", "SERVER LAST NAME", 0, "0"), null);
-        // Msj create
-        Menssage msj = new Menssage(serverClient, clienteReceptor, msjRespuestaServer, null);
-
-        msj.setType(typeMessages.SERVERMENSSAGE);
-
+    
+    
+       public void enviarRespuestaCliente(String msjRespuestaServer, Client clienteReceptor, typeMessages typeMensage) {
+           
+        System.out.println("enviarRespuestaCliente :  "+ msjRespuestaServer);
+        
+        Menssage msj = new Menssage(this.serverClient, clienteReceptor, msjRespuestaServer, typeMensage);
         ClientThread temp = buscarClientexUsuario(clienteReceptor.getUser());
-
         if (temp != null) {
             temp.enviarMensajeCliente(msj);
         }
-
     }
+    
+   
 
     public List<ClientThread> getListClientThread() {
         if (listClientThread == null) {
@@ -155,5 +173,12 @@ public class AppServer extends Thread {
     public void setListClientThread(List<ClientThread> listClientThread) {
         this.listClientThread = listClientThread;
     }
+
+    public Client getServerClient() {
+        return serverClient;
+    }
+    
+    
+    
 
 }

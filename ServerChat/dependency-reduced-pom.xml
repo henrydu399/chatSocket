@@ -21,7 +21,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>co.system.out.serverchat.Sokect.Main</mainClass>
+                  <mainClass>co.system.out.serverchat.Sokect.RunServe</mainClass>
                 </transformer>
               </transformers>
             </configuration>

@@ -1,12 +1,19 @@
 package co.system.out.serverchat.Sokect;
 
+import co.system.out.serverchat.business.IContactosBusiness;
+import co.system.out.serverchat.business.IUserBusiness;
+import co.system.out.serverchat.exceptions.UserExceptions;
 import java.io.*;
 import java.net.*;
 
 import com.google.gson.Gson;
 
-import co.system.out.serverchat.models.Client;
-import co.system.out.serverchat.models.Menssage;
+
+import co.system.out.clientchatgui.models.*;
+
+
+import co.system.out.serverchat.util.MenssageUtil;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,9 +29,22 @@ public class ClientThread extends Thread {
 
     BufferedReader reader;
 
-    public ClientThread(Socket socket, AppServer _appServer) {
+    ///Business Logic
+    private IUserBusiness userBusiness;
+    private IContactosBusiness contactosBusiness;
+
+    //logic
+    LogicClient logic;
+
+    public ClientThread(Socket socket, AppServer _appServer, String ip, IUserBusiness _userBusiness, IContactosBusiness _contactosBusiness) {
         this.socket = socket;
         this.appServer = _appServer;
+        this.userBusiness = _userBusiness;
+        this.contactosBusiness = _contactosBusiness;
+
+        logic = new LogicClient(this, this.userBusiness, this.contactosBusiness);
+
+        cliente = new Client(ip, null, new Date());
 
         try {
             this.dtinpt = new DataInputStream(socket.getInputStream());
@@ -40,7 +60,7 @@ public class ClientThread extends Thread {
         try {
 
             String msgin = null;
-            
+
             while (true) {
 
                 if (!socket.isClosed()) {
@@ -82,7 +102,7 @@ public class ClientThread extends Thread {
             System.out.println("Error in UserThread: " + ex.getMessage());
             ex.printStackTrace();
             closeConexion();
-            
+
         }
     }
 
@@ -108,8 +128,7 @@ public class ClientThread extends Thread {
         } catch (IOException ex1) {
             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex1);
         }
-        
-        
+
     }
 
     /*
@@ -117,34 +136,48 @@ public class ClientThread extends Thread {
      */
     public void executeComportamiento(Menssage msj) {
         String out = null;
-        switch (msj.getType()) {
-            case USERLOGIN:
-                this.cliente = msj.getClientEmisor();
-                System.out.println("SERVER : EL Cliente : " + msj.getClientEmisor().getUser().getNombres() + " ENVIA :" + msj.getMesaje() + " IP DEL CLIENTE : " + msj.getClientEmisor().getIp());
-                break;
-            case USERMENSSAGE:  // MENSAJE ENVIADO A OTRO OSUARIO
-                out = this.appServer.enviarMensajeUserxUser(msj);
-                System.out.println("SERVER : EL Cliente : " + msj.getClientEmisor().getUser().getNombres() + " ENVIA :" + msj.getMesaje());
 
-                break;
+        Gson gson = new Gson();
+        String json = gson.toJson(msj);
 
-            default:
-                break;
+        try {
+            switch (msj.getType()) {
+                case REGISTER:
+                    Logger.getLogger(ClientThread.class.getName()).log(Level.INFO, "REGISTER :" + json);
+                    break;
+                case USERLOGIN:
+                    Logger.getLogger(ClientThread.class.getName()).log(Level.INFO, "USERLOGIN :" + json);
+                    this.logic.login(msj);
+                    break;
+                case USERMENSSAGE:  // MENSAJE ENVIADO A OTRO OSUARIO 
+                    Logger.getLogger(ClientThread.class.getName()).log(Level.INFO, "USERMENSSAGE :" + json);
+                    out = this.appServer.enviarMensaje(msj);
+                    break;
+
+                default:
+                    Logger.getLogger(ClientThread.class.getName()).log(Level.INFO, "default :" + json);
+                    break;
+            }
+
+        } catch (Exception e) {
+
         }
 
     }
 
     /*
-	 * Metodo que envia mensaje desde otro usuario 
+	 * Metodo que devuelve el mensaje o respuesta  al cliente de un evento
      */
     public void enviarMensajeCliente(Menssage msj) {
+
         try {
             if (this.socket != null) {
                 dtotpt = new DataOutputStream(this.socket.getOutputStream());
                 dtotpt.writeUTF(new Gson().toJson(msj));
-                dtotpt.flush();
+                //dtotpt.flush();
+
             } else {
-                System.out.println("SERVER : EL SOCKET ESTA CERRADO PARA EL CLIENTE :");
+
             }
 
         } catch (IOException e) {
@@ -167,6 +200,10 @@ public class ClientThread extends Thread {
 
     public void setSocket(Socket socket) {
         this.socket = socket;
+    }
+
+    public AppServer getAppServer() {
+        return appServer;
     }
 
 }

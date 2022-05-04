@@ -2,55 +2,27 @@
 package co.system.out.clientchatgui.views;
 
 
-import co.system.out.clientchatgui.main.MaincClient;
-import co.system.out.serverchat.models.Client;
-import co.system.out.serverchat.models.Menssage;
-import co.system.out.serverchat.models.User;
-import com.google.gson.Gson;
-import java.io.IOException;
-import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import javax.swing.JButton;
+import javax.swing.JTextField;
 
 
 public class LoginView extends javax.swing.JFrame {
 
-    private MaincClient mainClient;
-    private MainView mainView;
+  
 
     /**
      * Creates new form LoginView
      */
     public LoginView() {
         initComponents();
-        this.mainClient = new MaincClient();
-        mainClient.Conectar();
-        
-      
+
+ 
 	
     }
     
 
-    public void  login() {
-        try {
-            User userLocal = new User(this.jTextFieldUser.getText(), this.jTextFieldPasssword.getText(), "", "", 27, "0000000");
-            mainClient.setUserLocal(userLocal);
-            Client client = new Client(mainClient.getIp(),mainClient.getUserLocal() , new Date());
-            mainClient.setClienteMain(client);
-            Menssage msj = new Menssage(mainClient.getClienteMain(), null, "USUARIO  : " + userLocal.getEmail(), Menssage.typeMessages.USERLOGIN);
-            mainClient.getWriteThread().getDtotpt().writeUTF(new Gson().toJson(msj));
-            mainClient.getWriteThread().getDtotpt().flush();
-            mainClient.setLogin(true);
-            
-            mainView =  new MainView(mainClient);
-            this.setVisible(false);
-            mainView.setVisible(true);
-            
-        } catch (IOException ex) {
-            Logger.getLogger(LoginView.class.getName()).log(Level.SEVERE, null, ex);
-        }
-       
-    }
+ 
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -66,7 +38,7 @@ public class LoginView extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         jTextFieldPasssword = new javax.swing.JTextField();
         jTextFieldUser = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        jButtonEntrar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -76,22 +48,10 @@ public class LoginView extends javax.swing.JFrame {
 
         jLabel3.setText("USUARIO :");
 
-        jTextFieldPasssword.addActionListener(new java.awt.event.ActionListener() {
+        jButtonEntrar.setText("ENTRAR");
+        jButtonEntrar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextFieldPassswordActionPerformed(evt);
-            }
-        });
-
-        jTextFieldUser.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextFieldUserActionPerformed(evt);
-            }
-        });
-
-        jButton1.setText("ENTRAR");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                jButtonEntrarActionPerformed(evt);
             }
         });
 
@@ -111,7 +71,7 @@ public class LoginView extends javax.swing.JFrame {
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(152, 152, 152)
-                        .addComponent(jButton1)))
+                        .addComponent(jButtonEntrar)))
                 .addContainerGap(86, Short.MAX_VALUE))
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
@@ -134,7 +94,7 @@ public class LoginView extends javax.swing.JFrame {
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextFieldPasssword, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(33, 33, 33)
-                .addComponent(jButton1)
+                .addComponent(jButtonEntrar)
                 .addContainerGap(41, Short.MAX_VALUE))
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
@@ -151,56 +111,43 @@ public class LoginView extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jTextFieldPassswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldPassswordActionPerformed
+    private void jButtonEntrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEntrarActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextFieldPassswordActionPerformed
+    }//GEN-LAST:event_jButtonEntrarActionPerformed
 
-    private void jTextFieldUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldUserActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextFieldUserActionPerformed
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-
-        this.login();
-    }//GEN-LAST:event_jButton1ActionPerformed
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(LoginView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(LoginView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(LoginView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(LoginView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new LoginView().setVisible(true);
-            }
-        });
+    
+    
+    public JButton getjButtonEntrar() {
+        return jButtonEntrar;
     }
 
+    public void setjButtonEntrar(JButton jButtonEntrar) {
+        this.jButtonEntrar = jButtonEntrar;
+    }
+
+    public JTextField getjTextFieldPasssword() {
+        return jTextFieldPasssword;
+    }
+
+    public void setjTextFieldPasssword(JTextField jTextFieldPasssword) {
+        this.jTextFieldPasssword = jTextFieldPasssword;
+    }
+
+    public JTextField getjTextFieldUser() {
+        return jTextFieldUser;
+    }
+
+    public void setjTextFieldUser(JTextField jTextFieldUser) {
+        this.jTextFieldUser = jTextFieldUser;
+    }
+
+ 
+    
+    
+    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButtonEntrar;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
