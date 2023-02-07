@@ -35,8 +35,11 @@ public class ConexionCofig {
     public static Connection get() throws ConfigExeptions{
         Connection conn = null;
             try {
-                
-                conn = DriverManager.getConnection(   driverNameDb+ host +":"+port+":"+databaseName, user,password );
+                //jdbc:mariadb://{host}[:{port}]/[{database}]
+            	//ORACLE
+                //conn = DriverManager.getConnection(   driverNameDb+ host +":"+port+":"+databaseName, user,password );
+                //MARIADB 
+                conn = DriverManager.getConnection(driverNameDb+ host +":"+port+"/"+databaseName, user,password );
 
             if (conn != null) {
                 System.out.println("Connected to the database!");

@@ -3,8 +3,8 @@
     <modelVersion>4.0.0</modelVersion>
     
     
-    <groupId>co.system.out.chatSocket</groupId>
-    <artifactId>General</artifactId>
+    <groupId>co.system.out.chatsocket</groupId>
+    <artifactId>general</artifactId>
      <packaging>jar</packaging>
     <version>1.0</version>
     

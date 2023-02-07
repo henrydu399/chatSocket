@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package co.system.out.clientchatgui.models;
+package co.system.out.chatsocket.general.models;
 
 public class Persona  {
     

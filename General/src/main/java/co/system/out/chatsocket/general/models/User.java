@@ -1,5 +1,5 @@
 
-package co.system.out.clientchatgui.models;
+package co.system.out.chatsocket.general.models;
 
 public class User  extends Persona{
     

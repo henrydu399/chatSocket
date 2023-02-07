@@ -1,5 +1,5 @@
 
-package co.system.out.clientchatgui.models;
+package co.system.out.chatsocket.general.models;
 
 import java.util.ArrayList;
 import java.util.List;
