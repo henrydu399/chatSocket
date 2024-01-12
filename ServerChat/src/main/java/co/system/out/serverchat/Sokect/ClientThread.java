@@ -1,5 +1,6 @@
 package co.system.out.serverchat.Sokect;
 
+import co.system.out.serverchat.logic.LogicClient;
 import co.system.out.serverchat.business.IContactosBusiness;
 import co.system.out.serverchat.business.IUserBusiness;
 import co.system.out.serverchat.exceptions.UserExceptions;
@@ -9,11 +10,18 @@ import java.net.*;
 import com.google.gson.Gson;
 
 
-import co.system.out.clientchatgui.models.*;
+import co.system.out.chatsocket.general.models.*;
+import co.system.out.chatsocket.general.models.Menssage.StatusCode;
+import static co.system.out.chatsocket.general.models.Menssage.typeMessages.SOLICITUD_CONTACTOS;
+import co.system.out.serverchat.business.ISocilitudesBusiness;
+import co.system.out.serverchat.entitys.Users;
+import co.system.out.serverchat.logic.SolicitudesContactosLogic;
 
 
 import co.system.out.serverchat.util.MenssageUtil;
+import com.gosystem.commons.exceptions.BasicExeption;
 import java.util.Date;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,18 +40,26 @@ public class ClientThread extends Thread {
     ///Business Logic
     private IUserBusiness userBusiness;
     private IContactosBusiness contactosBusiness;
+    private ISocilitudesBusiness socilitudesBusiness;
 
     //logic
-    LogicClient logic;
+    private LogicClient logic;
+    private SolicitudesContactosLogic solicitudesContactosLogic;
+    
+    //MESAJE GLOBAL RESPUESTA DEL SERVIDOR
+     Menssage msjGlobal = new Menssage(null, null, StatusCode.OK,"", Menssage.typeMessages.GLOBALMENSSAGE);
 
-    public ClientThread(Socket socket, AppServer _appServer, String ip, IUserBusiness _userBusiness, IContactosBusiness _contactosBusiness) {
+    public ClientThread(Socket socket, AppServer _appServer, String ip, IUserBusiness _userBusiness, IContactosBusiness _contactosBusiness , ISocilitudesBusiness _socilitudesBusiness) {
         this.socket = socket;
         this.appServer = _appServer;
         this.userBusiness = _userBusiness;
         this.contactosBusiness = _contactosBusiness;
+        this.socilitudesBusiness = _socilitudesBusiness;
 
-        logic = new LogicClient(this, this.userBusiness, this.contactosBusiness);
-
+        this.logic = new LogicClient(this);
+        this.solicitudesContactosLogic = new SolicitudesContactosLogic(this);
+                
+                
         cliente = new Client(ip, null, new Date());
 
         try {
@@ -141,28 +157,48 @@ public class ClientThread extends Thread {
         String json = gson.toJson(msj);
 
         try {
+            Logger.getLogger(ClientThread.class.getName()).log(Level.INFO, "TYPE :"+ msj.getType()+ " " + json);
             switch (msj.getType()) {
                 case REGISTER:
-                    Logger.getLogger(ClientThread.class.getName()).log(Level.INFO, "REGISTER :" + json);
+                    
                     break;
                 case USERLOGIN:
-                    Logger.getLogger(ClientThread.class.getName()).log(Level.INFO, "USERLOGIN :" + json);
                     this.logic.login(msj);
                     break;
                 case USERMENSSAGE:  // MENSAJE ENVIADO A OTRO OSUARIO 
-                    Logger.getLogger(ClientThread.class.getName()).log(Level.INFO, "USERMENSSAGE :" + json);
                     out = this.appServer.enviarMensaje(msj);
+                    break;
+                    
+                case VER_CONTACTOS: //CARGA LOS CONTACTOS DEL CLIENTE
+                    this.logic.enviarContactosActuales(this.cliente.getUser());
+                    break;
+                    
+                case SOLICITUD_CONTACTOS:  // SOLICITDU DE CONTACTO NUEVO
+                    this.solicitudesContactosLogic.solicitudContacto(msj);
+                    
+                    break;
+                case ACEPTAR_CONTACTO:  // SOLICITDU DE CONTACTO NUEVO
+                    this.solicitudesContactosLogic.aceptarSolicitud(msj);
+                    
                     break;
 
                 default:
-                    Logger.getLogger(ClientThread.class.getName()).log(Level.INFO, "default :" + json);
+                  
                     break;
             }
 
         } catch (Exception e) {
-
+                    Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, "ERROR COMPORTAMIENTO MENSAJE :" + json);
+                    e.printStackTrace();
         }
 
+    }
+    
+   
+    
+    public void enviarMesajeGlobal(String mensaje){
+         this.msjGlobal.setMesaje(mensaje);
+         this.enviarMensajeCliente(this.msjGlobal);
     }
 
     /*
@@ -174,7 +210,7 @@ public class ClientThread extends Thread {
             if (this.socket != null) {
                 dtotpt = new DataOutputStream(this.socket.getOutputStream());
                 dtotpt.writeUTF(new Gson().toJson(msj));
-                //dtotpt.flush();
+                dtotpt.flush();
 
             } else {
 
@@ -205,5 +241,28 @@ public class ClientThread extends Thread {
     public AppServer getAppServer() {
         return appServer;
     }
+
+    public IUserBusiness getUserBusiness() {
+        return userBusiness;
+    }
+
+    public IContactosBusiness getContactosBusiness() {
+        return contactosBusiness;
+    }
+
+    public ISocilitudesBusiness getSocilitudesBusiness() {
+        return socilitudesBusiness;
+    }
+
+    public LogicClient getLogic() {
+        return logic;
+    }
+
+    public SolicitudesContactosLogic getSolicitudesContactosLogic() {
+        return solicitudesContactosLogic;
+    }
+    
+    
+    
 
 }

@@ -10,6 +10,10 @@ public class User  extends Persona{
   private String rol;
   private String state;
 
+   
+  
+  
+
     public User(String email, String password, long userId, String rol, String state, String tipoIdentificacion, String nombres, String apellidos, int edad, String numeroIdentificacion) {
         super(tipoIdentificacion, nombres, apellidos, edad, numeroIdentificacion);
         this.email = email;

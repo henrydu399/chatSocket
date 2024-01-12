@@ -1,7 +1,11 @@
 package co.system.out.clientchatgui.main;
 
-import co.system.out.clientchatgui.models.*;
-import co.system.out.clientchatgui.models.Menssage.StatusCode;
+
+import co.system.out.chatsocket.general.models.Menssage;
+import co.system.out.chatsocket.general.models.Menssage.StatusCode;
+import static co.system.out.chatsocket.general.models.Menssage.typeMessages.VER_CONTACTOS;
+import co.system.out.chatsocket.general.models.Solicitud;
+import co.system.out.chatsocket.general.models.User;
 import co.system.out.clientchatgui.utils.GSonUtils;
 import co.system.out.clientchatgui.utils.ViewUtil;
 import co.system.out.clientchatgui.utils.enums.ViewEnum;
@@ -13,8 +17,11 @@ import com.google.gson.Gson;
 
 import java.util.Arrays;
 
+import java.util.Objects;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 public class ReadThread extends Thread {
 
@@ -40,6 +47,7 @@ public class ReadThread extends Thread {
 
     }
 
+    @Override
     public void run() {
         while (true) {
             try {
@@ -56,13 +64,15 @@ public class ReadThread extends Thread {
                 }
 
             } catch (IOException ex) {
-                Logger.getLogger(ReadThread.class.getName()).log(Level.SEVERE, "ERROR LEYENDO MENSAJE DE SERVER", ex);
+                Logger.getLogger(ReadThread.class.getName()).log(Level.SEVERE, "ERROR LEYENDO MENSAJE DE SERVER", ex);       
+                 ViewUtil.showBasic("Error del servidor  ","Mensaje Error" , ViewUtil.getTypeByServer(StatusCode.INTERNAL_ERROR) );
                 ex.printStackTrace();
                 //break;
 
-            } catch (Exception ex) {
-                Logger.getLogger(ReadThread.class.getName()).log(Level.SEVERE, "ERROR LEYENDO MENSAJE DE SERVER", ex);
-                ex.printStackTrace();
+            } catch (Exception e) {
+                Logger.getLogger(ReadThread.class.getName()).log(Level.SEVERE, "ERROR LEYENDO MENSAJE DE SERVER", e);
+                ViewUtil.showBasic("Error del servidor 2 ","Mensaje Error" , ViewUtil.getTypeByServer(StatusCode.INTERNAL_ERROR) );
+                e.printStackTrace();
                 //break;
             }
         }
@@ -76,16 +86,22 @@ public class ReadThread extends Thread {
 
         Gson gson = new Gson();
         String json = gson.toJson(msj);
+        
+        
+            try{
+                   System.out.println( "ENTRANDO MENSAJE DESDE EL SERVER | TIPO : " + msj.getType()
+                        + "  CLIENTE ID EMISOR : " + msj.getClientEmisor().getUser().getUserId()==null?"":msj.getClientEmisor().getUser().getUserId()
+                        + "  CLIENTE ID RECEPTOR : " + msj.getClienteReceptor().getUser().getUserId() == null ? "" : msj.getClienteReceptor().getUser().getUserId() 
+                        + " MENSAJE : " + msj.getMesaje()
+                );
+                }catch(Exception e){
+                    
+                }
 
         switch (msj.getType()) {
 
             case USERLOGIN:
 
-                System.out.println( "ENTRANDO MENSAJE DESDE EL SERVER | USER LOGIN "
-                        + "  CLIENTE ID EMISOR : " + msj.getClientEmisor().getUser().getUserId()
-                        + "  CLIENTE ID RECEPTOR : " + msj.getClienteReceptor().getUser().getUserId()
-                        + " MENSAJE : " + msj.getMesaje()
-                );
                 if (msj.getStatusCode().equals(StatusCode.OK)) {
                     this.modelPrincipal.setUser(msj.getClientEmisor().getUser());
                     this.modelPrincipal.switchView(ViewEnum.MAIN, null, true);
@@ -98,23 +114,10 @@ public class ReadThread extends Thread {
                 break;
 
             case GLOBALMENSSAGE:
-                //this.mainClient.getMainView().getListMensajes().add( " [ SERVIDOR : ] " + " [ " +msj.getMesaje() + " ]"  );
-                //this.mainClient.getMainView().Imprimir();
+                 ViewUtil.showBasic(msj.getMesaje(), "MENSAJE SERVIDOR ", ViewUtil.getTypeByServer(msj.getStatusCode()));
                 break;
             case USERMENSSAGE:
-                Logger.getLogger(ReadThread.class.getName()).log(Level.INFO, "ENTRANDO MENSAJE DESDE EL SERVER | USERMENSSAGE "
-                        + "  CLIENTE  EMISOR : " + GSonUtils.serialize(msj.getClientEmisor())
-                        + "  CLIENTE  RECEPTOR : " + GSonUtils.serialize(msj.getClienteReceptor())
-                        + " MENSAJE : " + msj.getMesaje()
-                );
 
-//                 boolean existConvesation = false;
-//                for (Conversacion c : this.modelPrincipal.getMainEvent().getListConversaciones()) {
-//                    if (c.getUser().getUserId() ==  msj.getClientEmisor().getUser().getUserId() ) {
-//                        c.addMenssage(new Date().toString(), msj.getMesaje());
-//                        existConvesation = true;
-//                    }
-//                }
                 this.modelPrincipal.getMainEvent().addConversacion(msj.getClientEmisor().getUser().getUserId(), msj.getMesaje(), false);
 
                 if( this.modelPrincipal.getMainEvent().getUserSelect() != null &&   this.modelPrincipal.getMainEvent().getUserSelect().getUserId() == msj.getClientEmisor().getUser().getUserId() ){
@@ -126,14 +129,21 @@ public class ReadThread extends Thread {
                 break;
             case SERVERMENSSAGE:
                 System.out.println(" [ " + msj.getClientEmisor().getUser().getEmail() + " ] " + " [ " + msj.getMesaje() + " ]");
-                // this.mainClient.getMainView().getListMensajes().add( " [ "+msj.getClientEmisor().getUser().getEmail()+" ] " + " [ " +msj.getMesaje() + " ]"  );
-                //this.mainClient.getMainView().Imprimir();
                 break;
-            case CONTACTOS:
+            case VER_CONTACTOS:
                 if (msj.getStatusCode().equals(StatusCode.OK)) {
                     User[] listUserT = gson.fromJson(msj.getMesaje(), User[].class);
+                     if( Objects.nonNull(listUserT))
                     this.modelPrincipal.getMainEvent().cargarContactos(Arrays.asList(listUserT));
 
+                }
+                break;
+                
+            case VER_SOLICITUDES:
+                if (msj.getStatusCode().equals(StatusCode.OK)) {
+                    Solicitud[] list = gson.fromJson(msj.getMesaje(), Solicitud[].class);
+                    if( Objects.nonNull(list))
+                    this.modelPrincipal.getMainEvent().getSolicitudesComponent().cargarSolicitudes(Arrays.asList(list));
                 }
                 break;
 

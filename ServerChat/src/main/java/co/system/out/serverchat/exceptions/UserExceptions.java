@@ -37,11 +37,14 @@ public class UserExceptions extends RuntimeException{
     
     
     public static enum UserExceptionsMensajes{
+             EL_USUARIO_YA_ESTA_ONLINE("El usuario ya esta online"),
              NO_EXISTE_EL_USUARIO("No existe el usuario"),
              ERROR_CONSULTADO_USUARIO("Error consultando el usuario"),
+             ERROR_CONSULTANDO_USUARIO_BY_EMAIL("No existe el usuaio por el  email"),
              ERROR_CONSULTANDO_CONTACTOS("Error consultado los contactos"),
              NO_EXISTEN_CONTACTOS_PARA_EL_USUARIO("No existen contacntos para el usuario"),
-             ERROR_BUSCANDO_USUARIO("Error buscando Usuario")
+             ERROR_BUSCANDO_USUARIO("Error buscando Usuario"),
+             ERROR_GUARDANDO_USUARIOS("Error guardando usuario")
              ; 
              
               public  String value;

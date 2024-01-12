@@ -1,6 +1,7 @@
 package co.system.out.clientchatgui.utils;
 
-import co.system.out.clientchatgui.models.Menssage.StatusCode;
+
+import co.system.out.chatsocket.general.models.Menssage.StatusCode;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -46,7 +47,7 @@ public class ViewUtil {
                 return INFORMATION_MESSAGE;
                 
             default:
-                throw new AssertionError();
+                return  ERROR_MESSAGE; 
         }
 
     }

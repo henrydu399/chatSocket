@@ -2,8 +2,10 @@
 
 package co.system.out.clientchatgui.utils;
 
-import co.system.out.clientchatgui.models.Client;
-import co.system.out.clientchatgui.models.Menssage;
+import co.system.out.chatsocket.general.models.Client;
+import co.system.out.chatsocket.general.models.Menssage;
+
+
 
 
 public class MenssageUtil {

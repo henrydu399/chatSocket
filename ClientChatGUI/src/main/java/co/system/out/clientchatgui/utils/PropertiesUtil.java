@@ -12,7 +12,8 @@ import java.util.logging.Logger;
 
 public class PropertiesUtil {
 
-    private static final String path = "C:\\HOME SYSTEM\\chatSocket\\ClientChatGUI\\configuracion.properties";
+    //private static final String path = "C:\\HOME SYSTEM\\chatSocket\\ClientChatGUI\\configuracion.properties";
+    private static final String path = "configuracion.properties";
 
     public static Properties get() throws ConfigExeptions {
 

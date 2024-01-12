@@ -1,10 +1,11 @@
 package co.system.out.clientchatgui.main;
 
+import co.system.out.chatsocket.general.models.Client;
+import co.system.out.chatsocket.general.models.User;
 import co.system.out.clientchatgui.config.ConexionServer;
 import co.system.out.clientchatgui.eventsView.LoginEvent;
 import co.system.out.clientchatgui.eventsView.MainEvent;
-import co.system.out.clientchatgui.models.Client;
-import co.system.out.clientchatgui.models.User;
+
 import co.system.out.clientchatgui.utils.PropertiesUtil;
 import co.system.out.clientchatgui.utils.UtilServerChat;
 import co.system.out.clientchatgui.utils.enums.ViewEnum;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 public class ModelPrincipal {
 
@@ -94,6 +96,8 @@ public class ModelPrincipal {
                 break;
         }
     }
+    
+  
 
     public javax.swing.JFrame getView(ViewEnum viewName) {
         javax.swing.JFrame view = null;

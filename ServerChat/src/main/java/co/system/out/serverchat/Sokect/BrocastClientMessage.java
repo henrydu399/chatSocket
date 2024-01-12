@@ -1,5 +1,6 @@
 package co.system.out.serverchat.Sokect;
 
+import co.system.out.chatsocket.general.models.*;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -9,7 +10,7 @@ import java.util.List;
 
 import com.google.gson.Gson;
 
-import co.system.out.clientchatgui.models.*;
+
 
 
 public class BrocastClientMessage extends Thread {

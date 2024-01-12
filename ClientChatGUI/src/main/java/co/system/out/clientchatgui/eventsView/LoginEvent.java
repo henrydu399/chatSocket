@@ -1,9 +1,12 @@
 package co.system.out.clientchatgui.eventsView;
 
+
+import co.system.out.chatsocket.general.models.Client;
+import co.system.out.chatsocket.general.models.Menssage;
+import co.system.out.chatsocket.general.models.User;
 import co.system.out.clientchatgui.main.ModelPrincipal;
-import co.system.out.clientchatgui.models.Client;
-import co.system.out.clientchatgui.models.Menssage;
-import co.system.out.clientchatgui.models.User;
+
+
 import co.system.out.clientchatgui.utils.MenssageUtil;
 import co.system.out.clientchatgui.views.LoginView;
 import com.google.gson.Gson;

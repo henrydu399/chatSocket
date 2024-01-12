@@ -5,11 +5,18 @@
  */
 package co.system.out.serverchat.Sokect;
 
-import co.system.out.clientchatgui.models.*;
-import co.system.out.clientchatgui.models.Menssage.typeMessages;
 
+
+import co.system.out.chatsocket.general.models.Client;
+import co.system.out.chatsocket.general.models.Menssage;
+import co.system.out.chatsocket.general.models.Menssage.typeMessages;
+import co.system.out.chatsocket.general.models.User;
+import co.system.out.serverchat.business.ContactosBusinessImpl;
 import co.system.out.serverchat.business.IContactosBusiness;
+import co.system.out.serverchat.business.ISocilitudesBusiness;
 import co.system.out.serverchat.business.IUserBusiness;
+import co.system.out.serverchat.business.SolicitudesBusinessImpl;
+import co.system.out.serverchat.business.UserBusinessImpl;
 
 
 
@@ -19,8 +26,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Objects;
+import javax.persistence.EntityManager;
+
 
 
 public class AppServer extends Thread {
@@ -35,14 +43,20 @@ public class AppServer extends Thread {
     
     private Client serverClient ;
     
+    private EntityManager em;
+    
      ///Business Logic
     private IUserBusiness userBusiness;
     private IContactosBusiness contactosBusiness;
+    private ISocilitudesBusiness socilitudesBusiness;
 
         
-    public AppServer(IUserBusiness _userBusiness , IContactosBusiness _contactosBusiness) {
-        this.userBusiness = _userBusiness;
-        this.contactosBusiness = _contactosBusiness;
+    public AppServer(EntityManager _em) {
+            this.em = _em;
+            // Instanciando business
+            userBusiness = new UserBusinessImpl( this.em);
+            contactosBusiness = new ContactosBusinessImpl(this.em , userBusiness);
+            socilitudesBusiness = new SolicitudesBusinessImpl(em, userBusiness, contactosBusiness);
     }
         
         
@@ -84,7 +98,7 @@ public class AppServer extends Thread {
                         Socket sckt = ssckt.accept();
                         if (sckt != null) {
 
-                            ClientThread clientRhread = new ClientThread(sckt, this,sckt.getInetAddress().getHostAddress() , this.userBusiness , this.contactosBusiness );
+                            ClientThread clientRhread = new ClientThread(sckt, this,sckt.getInetAddress().getHostAddress() , this.userBusiness , this.contactosBusiness , this.socilitudesBusiness );
                             this.listClientThread.add(clientRhread);
                             // clientRhread.PreRun();
                             clientRhread.start();
@@ -147,7 +161,22 @@ public class AppServer extends Thread {
         }
         return null;
     }
-
+    
+    /**
+     * MEtodo que busca si el usuario ya esta online
+     * @param msjRespuestaServer
+     * @param clienteReceptor
+     * @param typeMensage 
+     */
+ public boolean isOnlineUser ( Long idUSer){
+     for (ClientThread temp : this.listClientThread) {
+         
+         if(  Objects.nonNull(temp.getCliente().getUser()) &&  temp.getCliente().getUser().getUserId() == idUSer){
+             return true;
+         }
+     }
+     return false;
+ }
     
     
        public void enviarRespuestaCliente(String msjRespuestaServer, Client clienteReceptor, typeMessages typeMensage) {
@@ -160,6 +189,8 @@ public class AppServer extends Thread {
             temp.enviarMensajeCliente(msj);
         }
     }
+       
+
     
    
 
@@ -177,6 +208,12 @@ public class AppServer extends Thread {
     public Client getServerClient() {
         return serverClient;
     }
+
+    public EntityManager getEm() {
+        return em;
+    }
+    
+    
     
     
     

@@ -2,7 +2,7 @@
 
 package co.system.out.serverchat.util;
 
-import co.system.out.clientchatgui.models.*;
+import co.system.out.chatsocket.general.models.*;
 
 
 

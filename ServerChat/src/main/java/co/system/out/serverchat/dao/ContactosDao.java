@@ -1,78 +1,179 @@
 package co.system.out.serverchat.dao;
 
-import co.system.out.serverchat.business.ContactosBusinessImpl;
 import co.system.out.serverchat.exceptions.UserExceptions;
-import co.system.out.clientchatgui.models.*;
+import co.system.out.chatsocket.general.models.*;
+
+import co.system.out.serverchat.entitys.Contactos;
+import co.system.out.serverchat.entitys.Users;
+
+import co.system.out.serverchat.util.GSonUtils;
 import com.google.gson.Gson;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import com.gosystem.commons.exceptions.GenericException;
+import java.nio.charset.StandardCharsets;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceException;
 
-public class ContactosDao {
+public class ContactosDao extends Dao implements IDao<Contactos> {
 
-    private Connection con;
+    public ContactosDao(EntityManager em) {
+        super(em);
+    }
 
-    public ContactosDao(Connection con) {
-        this.con = con;
+    public Contactos getContactoById(Long id) {
+        try {
+            Contactos c = (Contactos) super.getEm().createQuery("SELECT c from Contactos c where c.userId = ?1 ")
+                    .setParameter(1, id)
+                    .getSingleResult();
+        } catch (PersistenceException pe) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, pe);
+            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_CONSULTANDO_CONTACTOS, "0001", pe.getMessage());
+        } catch (Exception e) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, e);
+            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_CONSULTANDO_CONTACTOS, "0001", e.getMessage());
+        }
+        return null;
     }
 
     public List<User> getContactosByUser(long idUser) {
 
         List<User> out = null;
-        User[] array = null;
-
         User user = null;
-
-        String SQL = "  SELECT c.CONTACTOS FROM CHATSOCKET.CONTACTOS c WHERE c.USER_ID = ?  ";
-
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
         try {
-            if (this.con != null) {
+            List<Contactos> list = super.getEm().createQuery("SELECT c from Contactos c where c.userId = ?1 ")
+                    .setParameter(1, idUser)
+                    .getResultList();
 
-                pstmt = this.con.prepareStatement(SQL);
-                pstmt.setLong(1, idUser);
-
-                rs = pstmt.executeQuery();
-                // check the affected rows 
-                while (rs.next()) {     
-                    out =  new ArrayList<>();
+            if (Objects.nonNull(list)) {
+                out = new ArrayList<User>();
+                for (Contactos c : list) {
                     Gson gson = new Gson();
-                    array = gson.fromJson(rs.getString("CONTACTOS"), User[].class);
+                    String contactosString = new String(c.getContactos()); 
+                    User[] array = gson.fromJson(contactosString, User[].class);
                     out = Arrays.asList(array);
-
+                    return out;
                 }
-                
-                if( out == null){
-             Logger.getLogger(ContactosDao.class.getName()).log(Level.INFO, "NO SE ENCONTRARON CONTACTOS PARA EL USUARIO : " +idUser);
-            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.NO_EXISTEN_CONTACTOS_PARA_EL_USUARIO, "0001",null);
-                }
-
             }
-        } catch (SQLException ex) {
-            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
-            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_CONSULTANDO_CONTACTOS, "0001", ex.getMessage());
+
+        } catch (PersistenceException pe) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, pe);
+            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_CONSULTANDO_CONTACTOS, "0001", pe.getMessage());
         } catch (Exception e) {
             Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, e);
             throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_CONSULTANDO_CONTACTOS, "0001", e.getMessage());
-            //this.closeAll(conn, pstmt, null);
         }
-
         return out;
 
     }
-    
-    
-    public void addContacto(){
-        
-    } 
-    
-    
+
+    /**
+     * Crean un nuevo contacto u = Usuario a agregar, idUSer = id del usuario
+     * principal
+     *
+     * @param u
+     * @param idUser
+     */
+    public void addContacto(User userContacto,  Users userPrincipal) {
+
+        List<User> listContactos = this.getContactosByUser(userPrincipal.getId());
+
+        boolean isnew = false;
+
+        if (Objects.nonNull(listContactos) &&  listContactos.size() > 0) {
+            listContactos.add(userContacto);
+        } else {
+            isnew = true;
+            listContactos = new ArrayList<User>();
+            listContactos.add(userContacto);
+        }
+
+
+
+        String contactosJson = GSonUtils.serialize(listContactos);
+        if (isnew) {
+            Contactos c = new Contactos();
+            c.setUserId(userPrincipal.getId());
+            c.setContactos(contactosJson.getBytes());
+            c.setUsers(userPrincipal);
+            this.save(c);
+        } else {
+            Contactos contactoByFind = new Contactos();
+            contactoByFind.setUserId(userPrincipal.getId());
+            Contactos contactosUser = this.find(contactoByFind); 
+            contactosUser.setContactos(contactosJson.getBytes());
+            this.edith(contactosUser);
+        }
+
+    }
+
+    public void saveUser(User u) {
+
+    }
+
+    @Override
+    public void save(Contactos u) throws GenericException {
+        try {
+            super.getEm().persist(u);
+        } catch (PersistenceException pe) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, pe);
+            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_GUARDANDO_USUARIOS, "0001", pe.getMessage());
+        } catch (Exception e) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, e);
+            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_GUARDANDO_USUARIOS, "0001", e.getMessage());
+        }
+    }
+
+    @Override
+    public void edith(Contactos p) throws GenericException {
+        try {
+            super.getEm().merge(p);
+        } catch (PersistenceException pe) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, pe);
+            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_GUARDANDO_USUARIOS, "0001", pe.getMessage());
+        } catch (Exception e) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, e);
+            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_GUARDANDO_USUARIOS, "0001", e.getMessage());
+        }
+    }
+
+    @Override
+    public Contactos find(Contactos p) throws GenericException {
+        try {
+            Contactos c = super.getEm().find(Contactos.class, p.getUserId());
+            return c;
+        } catch (PersistenceException pe) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, pe);
+            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_GUARDANDO_USUARIOS, "0001", pe.getMessage());
+        } catch (Exception e) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, e);
+            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_GUARDANDO_USUARIOS, "0001", e.getMessage());
+        }
+    }
+
+    @Override
+    public List<Contactos> findAll(Contactos p) throws GenericException {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void delete(Contactos p) throws GenericException {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void desactivate(Contactos usuario) throws GenericException {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public List<Contactos> getAll() throws GenericException {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 
 }

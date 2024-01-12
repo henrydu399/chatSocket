@@ -2,18 +2,20 @@ package co.system.out.serverchat.business;
 
 import co.system.out.serverchat.dao.UserDAO;
 import co.system.out.serverchat.exceptions.UserExceptions;
-import co.system.out.clientchatgui.models.*;
+import co.system.out.chatsocket.general.models.*;
+import co.system.out.serverchat.entitys.Users;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.persistence.EntityManager;
 
 public class UserBusinessImpl implements IUserBusiness {
 
     private UserDAO dao;
 
-    public UserBusinessImpl(Connection con) {
-        this.dao = new UserDAO(con);
+    public UserBusinessImpl(EntityManager _em) {
+        this.dao = new UserDAO(_em);
 
     }
 
@@ -53,6 +55,20 @@ public class UserBusinessImpl implements IUserBusiness {
     @Override
     public void create(String username, String password) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public Users findByEmail(String email) throws UserExceptions {
+      return this.dao.findByEmail(email);
+        
+    }
+    
+     @Override
+    public Users findById(Long id) throws UserExceptions {
+        Users u =  new Users();
+        u.setId(id);
+      return this.dao.find(u);
+        
     }
 
 }

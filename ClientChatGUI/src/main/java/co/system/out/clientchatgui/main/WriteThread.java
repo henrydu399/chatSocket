@@ -1,7 +1,10 @@
 package co.system.out.clientchatgui.main;
 
-import co.system.out.clientchatgui.models.*;
-import co.system.out.clientchatgui.models.Menssage.typeMessages;
+
+import co.system.out.chatsocket.general.models.Client;
+import co.system.out.chatsocket.general.models.Menssage;
+import co.system.out.chatsocket.general.models.Menssage.typeMessages;
+import co.system.out.chatsocket.general.models.User;
 import java.io.*;
 import java.net.*;
 import java.util.Date;
@@ -35,7 +38,7 @@ public class WriteThread extends Thread {
 
     }
 
-    public void enviar(long idUser , String mesaje) {
+    public void enviarMessage(long idUser , String mesaje) {
         try {          
             // public User(String email, long userId, String rol, String state, String tipoIdentificacion, String nombres, String apellidos, String numeroIdentificacion) {
             User userRecept = new User(null, idUser, null, null, null, null, null, null); // usuario receptor
@@ -53,6 +56,23 @@ public class WriteThread extends Thread {
 
 
 
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+    
+      public void enviar( String emailContacto , typeMessages type ) {
+        try {                 
+            Menssage msj = new Menssage(
+                    new Client(this.modelPrincipal.getIp(), this.modelPrincipal.getUser(), new Date()), // CLIENTE EMISOR 
+                    new Client(null, null, new Date()), // CLIENTE RECEPTOR 
+                    emailContacto,
+                    type); //
+            
+            Logger.getLogger(WriteThread.class.getName()).log(Level.INFO, "ENVIANDO MENSAJE AL SERVER ...  "+ new Gson().toJson(msj));
+
+            dtotpt.writeUTF(new Gson().toJson(msj));
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

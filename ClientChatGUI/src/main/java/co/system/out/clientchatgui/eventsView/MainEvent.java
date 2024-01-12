@@ -1,9 +1,12 @@
 package co.system.out.clientchatgui.eventsView;
 
-import co.system.out.clientchatgui.componentes.contactos.ContactosComponent;
+import co.system.out.chatsocket.general.models.Conversacion;
+import co.system.out.chatsocket.general.models.User;
+import co.system.out.clientchatgui.componentes.ContactosComponent;
+import co.system.out.clientchatgui.componentes.SolicitudesComponent;
 import co.system.out.clientchatgui.main.ModelPrincipal;
-import co.system.out.clientchatgui.models.Conversacion;
-import co.system.out.clientchatgui.models.User;
+
+
 import co.system.out.clientchatgui.utils.DateUtils;
 import co.system.out.clientchatgui.utils.PropertiesUtil;
 import co.system.out.clientchatgui.utils.ViewUtil;
@@ -18,11 +21,17 @@ import javax.swing.JList;
 
 public class MainEvent {
 
+    public final String YO = "|YO|";
+    
     //VIEW LOGIN
     MainView mainView;
+    
 
     //COMPONENTES
     ContactosComponent contactosComponent;
+    SolicitudesComponent solicitudesComponent;
+    
+    
 
     private ModelPrincipal modelPrincipal;
 
@@ -37,16 +46,17 @@ public class MainEvent {
         this.mainView = new MainView();
         this.modelPrincipal = modelPrincipal;
 
-        listConversaciones = new ArrayList<>();
-        listContactos = new ArrayList<>();
+        this.listConversaciones = new ArrayList<>();
+        this.listContactos = new ArrayList<>();
 
-        contactosComponent = new ContactosComponent(listContactos, this.mainView.getjListContactos());
+        this.contactosComponent = new ContactosComponent(listContactos, this.mainView.getjListContactos());
+        this.solicitudesComponent =  new SolicitudesComponent(modelPrincipal);
 
         this.mainView.setVisible(true);
         
         ///PERFIL
         this.mainView.getjLabelUserName().setText( this.modelPrincipal.getUser().getUserName());
-
+        this.mainView.getjLabelRolUSerName().setText(this.modelPrincipal.getUser().getRol());
         /*
         EVENTOS 
          */
@@ -61,7 +71,20 @@ public class MainEvent {
                 selectContacto(evt);
             }
         });
+        
+          this.mainView.getjButton_solicitudes().addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                verSolicitudes();
+            }
+        });
+        
+        
 
+    }
+    
+    
+    public void verSolicitudes(){
+        this.solicitudesComponent.getSolicitudesEvent().getView().setVisible(true);
     }
 
     public void cargarContactos(List<User> _listContactos) {
@@ -86,7 +109,14 @@ public class MainEvent {
         for (Conversacion c : this.listConversaciones) {
             if (c.getUser().getUserId() == userId) {
                 for (Conversacion.MenssageConversacion m : c.getMenssages()) {
-                    temp = temp + " " + m.getFecha() + " | " + m.getMsj() + "" + "\n";
+                    if( m.getMsj().contains(this.YO)){
+                         String msjTemp = m.getMsj().replace(this.YO, "");
+                         temp = temp + "                             " + m.getFecha() + " | " + msjTemp+ "" + "\n";
+                    }else{
+                         temp = temp + " " + m.getFecha() + " | " + m.getMsj()+ "" + "\n";
+                    }
+                   
+                   
                 }
             }
         }
@@ -106,9 +136,9 @@ public class MainEvent {
         String userTemp = "";
         userTemp = this.mainView.getjTextFieldUserRecived().getText();
 
-        this.modelPrincipal.getServer().getWriteThread().enviar(this.userSelect.getUserId(), msjTemp);
+        this.modelPrincipal.getServer().getWriteThread().enviarMessage(this.userSelect.getUserId(), msjTemp);
         
-        addConversacion(this.userSelect.getUserId(), " |YO| " + msjTemp, true);
+        addConversacion(this.userSelect.getUserId(), this.YO + msjTemp, true);
         this.imprimirByUser(this.userSelect.getUserId());
 
         this.mainView.getjTextFieldMensaje().setText("");
@@ -172,6 +202,10 @@ public class MainEvent {
 
     public void setUserSelect(User userSelect) {
         this.userSelect = userSelect;
+    }
+
+    public SolicitudesComponent getSolicitudesComponent() {
+        return solicitudesComponent;
     }
     
     

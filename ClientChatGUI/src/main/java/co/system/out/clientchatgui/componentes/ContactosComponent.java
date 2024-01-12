@@ -1,7 +1,8 @@
-package co.system.out.clientchatgui.componentes.contactos;
+package co.system.out.clientchatgui.componentes;
 
-import co.system.out.clientchatgui.models.User;
 
+
+import co.system.out.chatsocket.general.models.User;
 import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;

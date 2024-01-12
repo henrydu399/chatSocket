@@ -101,7 +101,10 @@ public class Menssage implements Serializable{
     	USERMENSSAGE,
     	USERLOGIN,
         REGISTER,
-        CONTACTOS
+        VER_CONTACTOS,
+        VER_SOLICITUDES, // MENSAJE QUE INDICA AL CLIENTE QUE RECARGE LAS SOLICITUDES
+        SOLICITUD_CONTACTOS,
+        ACEPTAR_CONTACTO
     }
     
     

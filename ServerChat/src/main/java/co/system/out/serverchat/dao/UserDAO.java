@@ -2,128 +2,139 @@ package co.system.out.serverchat.dao;
 
 import co.system.out.serverchat.exceptions.UserExceptions;
 import co.system.out.serverchat.exceptions.UserExceptions.UserExceptionsMensajes;
-import co.system.out.clientchatgui.models.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import co.system.out.chatsocket.general.models.*;
+import co.system.out.serverchat.builds.UserBuild;
+import co.system.out.serverchat.entitys.Users;
+import com.gosystem.commons.exceptions.GenericException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceException;
 
-public class UserDAO {
+public class UserDAO extends Dao implements IDao<Users>{
 
-    private Connection con;
-
-    public UserDAO(Connection con) {
-        this.con = con;
+    public UserDAO(EntityManager em) {
+        super(em);
     }
+  
 
     public User getUser(String userName, String password) throws UserExceptions {
 
-        User user = null;
-
-        String SQL = " SELECT u.ID ,  u.EMAIL  , u.USERNAME  ,u.ROL  , u.STATE , p.NOMBRE , p.APELLIDOS , p.NUMERO_IDENTIFICACION , p.TIPO_IDENTIFICACION  "
-                + "  FROM CHATSOCKET.USERS u INNER JOIN CHATSOCKET.PERSONAS p ON ( u.NUMERO_IDENTIFICACION = p.NUMERO_IDENTIFICACION AND u.TIPO_IDENTIFICACION = p.TIPO_IDENTIFICACION) "
-                + "  WHERE u.USERNAME  = ? AND u.PASSWORD = ?  ";
-
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        try {
-            if (this.con != null) {
-
-                pstmt = this.con.prepareStatement(SQL);
-                pstmt.setString(1, userName);
-                pstmt.setString(2, password);
-
-                rs = pstmt.executeQuery();
-                // check the affected rows 
-                while (rs.next()) {
-                    //(String email, long userId,  String userName ,String rol, String state, String tipoIdentificacion, String nombres, String apellidos, String numeroIdentificacion) 
-                    user = getUser(rs);
-
+        User user = null;  
+        try {  
+            List<Users> usersList = super.getEm().createQuery("SELECT u from Users u where u.username = ?1 and u.password = ?2")
+              .setParameter(1, userName)
+              .setParameter(2, password)
+              .getResultList();
+            
+            if( Objects.nonNull(usersList)){
+                for( Users u : usersList){
+                    user  = UserBuild.build(u);
+                    return user;
                 }
-
             }
-        } catch (SQLException ex) {
-
-            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
-            throw new UserExceptions(UserExceptionsMensajes.ERROR_CONSULTADO_USUARIO, "0001", ex.getMessage());
+            
+        } catch (PersistenceException pe) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, pe);
+            throw new UserExceptions(UserExceptionsMensajes.ERROR_CONSULTADO_USUARIO, "0001", pe.getMessage());
         } catch (Exception e) {
-
             Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, e);
             throw new UserExceptions(UserExceptionsMensajes.ERROR_CONSULTADO_USUARIO, "0001", e.getMessage());
-            //this.closeAll(conn, pstmt, null);
         }
         return user;
     }
 
     public User FindUserGeneral(HashMap<String, String> parameters) throws UserExceptions {
-
         User user = null;
-
-        String SQL = " SELECT u.ID ,  u.EMAIL  , u.USERNAME  ,u.ROL  , u.STATE , p.NOMBRE , p.APELLIDOS , p.NUMERO_IDENTIFICACION , p.TIPO_IDENTIFICACION  "
-                + "  FROM CHATSOCKET.USERS u INNER JOIN CHATSOCKET.PERSONAS p ON ( u.NUMERO_IDENTIFICACION = p.NUMERO_IDENTIFICACION AND u.TIPO_IDENTIFICACION = p.TIPO_IDENTIFICACION) "
-                + "  WHERE 1 = 1 ";
-
-        for (String i : parameters.keySet()) {
-            SQL = SQL + " " + i + " = ?";
-        }
-
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        try {
-            if (this.con != null) {
-
-                pstmt = this.con.prepareStatement(SQL);
-
-                int cont = 1;
-                for (String i : parameters.values()) {
-                    pstmt.setString(1, i);
-                    cont++;
-                }
-
-                rs = pstmt.executeQuery();
-                // check the affected rows 
-                while (rs.next()) {
-                    user = getUser(rs);
-                }
-
-            }
-        } catch (SQLException ex) {
-
-            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
-            throw new UserExceptions(UserExceptionsMensajes.ERROR_CONSULTADO_USUARIO, "0001", ex.getMessage());
-        } catch (Exception e) {
-
-            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, e);
-            throw new UserExceptions(UserExceptionsMensajes.ERROR_CONSULTADO_USUARIO, "0001", e.getMessage());
-            //this.closeAll(conn, pstmt, null);
-        }
         return user;
     }
-
-    private User getUser(ResultSet rs) throws UserExceptions {
-        User u = null;
-        if (rs != null) {
-            try {
-                u = new User(
-                        rs.getString("EMAIL"),
-                        rs.getLong("ID"),
-                        rs.getString("USERNAME"),
-                        rs.getString("ROL"),
-                        rs.getString("STATE"),
-                        rs.getString("TIPO_IDENTIFICACION"),
-                        rs.getString("NOMBRE"),
-                        rs.getString("APELLIDOS"),
-                        rs.getString("NUMERO_IDENTIFICACION")
-                );
-            } catch (SQLException ex) {
-                Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
-                throw new UserExceptions(UserExceptionsMensajes.ERROR_CONSULTADO_USUARIO, "0001", ex.getMessage());
+    
+    public Users findByEmail(String email){
+         try {  
+            List<Users> usersList = super.getEm().createQuery("SELECT u from Users u where u.email = ?1 ")
+              .setParameter(1, email)
+              .getResultList();
+            if( Objects.nonNull(usersList)){
+                for( Users u : usersList){
+                    return u;
+                }
             }
+            
+        } catch (PersistenceException pe) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, pe);
+            throw new UserExceptions(UserExceptionsMensajes.ERROR_CONSULTANDO_USUARIO_BY_EMAIL , "0001", pe.getMessage());
+        } catch (Exception e) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, e);
+            throw new UserExceptions(UserExceptionsMensajes.ERROR_CONSULTADO_USUARIO, "0001", e.getMessage());
         }
-        return u;
+         return null;
     }
+
+    @Override
+    public List<Users> getAll() throws GenericException {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void save(Users u) throws GenericException {
+          try {     
+                super.getEm().persist(u);         
+        } catch (PersistenceException pe) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, pe);
+            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_GUARDANDO_USUARIOS, "0001", pe.getMessage());
+        } catch (Exception e) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, e);
+            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_GUARDANDO_USUARIOS, "0001", e.getMessage());
+        }
+    }
+
+    @Override
+    public void edith(Users p) throws GenericException {
+         try {     
+                super.getEm().merge(p);         
+        } catch (PersistenceException pe) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, pe);
+            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_GUARDANDO_USUARIOS, "0001", pe.getMessage());
+        } catch (Exception e) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, e);
+            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_GUARDANDO_USUARIOS, "0001", e.getMessage());
+        }
+    }
+
+       @Override
+    public Users find(Users p) throws GenericException {
+           try {     
+                Users u = super.getEm().find(Users.class, p.getId());
+                return u;
+        } catch (PersistenceException pe) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, pe);
+            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_GUARDANDO_USUARIOS, "0001", pe.getMessage());
+        } catch (Exception e) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, e);
+            throw new UserExceptions(UserExceptions.UserExceptionsMensajes.ERROR_GUARDANDO_USUARIOS, "0001", e.getMessage());
+        }
+    }
+    
+    
+    
+
+    @Override
+    public List<Users> findAll(Users p) throws GenericException {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void delete(Users p) throws GenericException {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void desactivate(Users usuario) throws GenericException {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+   
 }
